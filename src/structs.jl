@@ -15,7 +15,7 @@ end
 Base.show(io::IO, x::Station) = print(io, x.name)
 
 # objet Subdivision modélisant un lotissement urbain
-struct Subdivision
+struct Townsite
     name::String
     latitude::Float64
     longitude::Float64
@@ -23,4 +23,4 @@ struct Subdivision
     nearStations::Array{Station,1}
 end
 
-Base.show(io::IO, x::Subdivision) = print(io, x.name)
+Base.show(io::IO, x::Townsite) = print(io, x.name)

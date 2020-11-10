@@ -18,12 +18,12 @@ function getStations(fileName::String)
     return stations
 end
 
-# retourne un Array{Subdivision,1} d'objets Subdivision
-function getSubdivisions(fileName::String,stations::Array{Station,1})
+# retourne un Array{Townsite,1} d'objets Townsite
+function getTownsites(fileName::String,stations::Array{Station,1})
     f = openFile(fileName) # ouverture du fichier
-    nbSubdivisions = parse(Int,readline(f)) # nombre de subdivisions
-    subdivisions = Vector{Subdivision}(undef,nbSubdivisions)
-    for indexSubdivision in 1:nbSubdivisions
+    nbTownsites = parse(Int,readline(f)) # nombre de townsites
+    townsites = Vector{Townsite}(undef,nbTownsites)
+    for indexTownsite in 1:nbTownsites
         line = readline(f)
         splitLine = split(line," ")
         nbNearStations = length(splitLine) - 4 # nombre de stations proches
@@ -31,9 +31,9 @@ function getSubdivisions(fileName::String,stations::Array{Station,1})
         for indexStation in 1:nbNearStations
             nearStations[indexStation] = getStation(string(splitLine[4+indexStation]),stations) # on les stock dans un vecteur
         end
-        subdivisions[indexSubdivision] = Subdivision(splitLine[1],parse(Float64,splitLine[2]),parse(Float64,splitLine[3]),parse(Int,splitLine[4]),nearStations)
+        townsites[indexTownsite] = Townsite(splitLine[1],parse(Float64,splitLine[2]),parse(Float64,splitLine[3]),parse(Int,splitLine[4]),nearStations)
     end
-    return subdivisions
+    return townsites
 end
 
 # retourne la station du vecteur stations dont le nom est stationName

@@ -1,0 +1,2 @@
+
+Etant donné que les distances sont courtes (pas plus de 100km), on peut estimer la distance entre deux points grâce à la norme usuelle euclidienne.

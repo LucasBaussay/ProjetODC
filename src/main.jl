@@ -5,6 +5,8 @@ main.jl est le fichier principal.
 
 println("Precompiling packages...")
 
+using JuMP
+
 include("structs.jl")
 include("dataManager.jl")
 

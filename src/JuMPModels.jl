@@ -11,6 +11,8 @@ function MCP_model(stations::Array{Station,1},townsites::Array,p::Int,h::Array{F
     nbTownsites = length(townsites)
     @variable(m, x[1:nbStations], Bin) # xi = 1 si la station i est construite, 0 sinon
     @variable(m, s[1:nbTownsites], Bin) # si = 1 si la demande du lotissement i est satisfaite, 0 sinon
-    @constraint(m, demande, )
-    @objective(ip, Max, dot(C, x))
+    @constraint(m, activation[1:nbTownsites], sum(x[station] - s[townsite] for station=1:nbStations) >= 0)
+    @constraint(m, limit, sum(x[station] for station=1:nbStations) == p)
+    @objective(ip, Max, dot(h,s))
+    return m, x
 end

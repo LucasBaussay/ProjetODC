@@ -15,4 +15,6 @@ struct Subdivision
     name::String
     latitude::Float64
     longitude::Float64
+    density::Int
+    nearStations::Array{Station,1}
 end

@@ -8,11 +8,18 @@ println("Precompiling packages...")
 include("structs.jl")
 include("dataManager.jl")
 
-const CostOpenStation = 1900000
-const CostBridge = 28600000
-const NewLinePerKm = 5900000
-const CostVehicles = 250000
-const CostMAintenanceVehiclesPerYear = 35000
+const COSTOPENSTATION = 1900000
+const COSTBRIDGE = 28600000
+const COSTNEWLINEPERKM = 5900000
+const COSTVEHICLES = 250000
+const COSTMAINTENANCEVEHICLESPERYEAR = 35000
+const MAXVEHICLES = 2
+const MAXCAPAVEHICLE = 20
+const SPEEDVEHICLE = 20
+
+const STOPTIMESTATION = 3
+
+
 
 function jules()
     stations = getStations("stations.dat")

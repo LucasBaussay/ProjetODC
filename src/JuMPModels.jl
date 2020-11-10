@@ -3,8 +3,6 @@
 JuMPModels.jl gère les modèles JuMP et leur résolution
 """
 
-using GLPK
-
 function MCP_model(stations::Array{Station,1},townsites::Array,p::Int,h::Array{Float64,1})
     m = Model(GLPK.Optimizer)
     nbStations = length(stations)

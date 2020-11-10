@@ -11,6 +11,8 @@ include("dataManager.jl")
 function jules()
     stations = getStations("stations.dat")
     println(stations)
+    subdivisions = getSubdivisions("subdivisions.dat",stations)
+    println(subdivisions)
 end
 
 function lucas()

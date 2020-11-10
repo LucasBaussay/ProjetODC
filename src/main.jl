@@ -23,11 +23,13 @@ const STOPTIMESTATION = 3
 
 
 
+
+
 function jules()
     stations = getStations("stations.dat")
     println(stations)
-    subdivisions = getSubdivisions("subdivisions.dat",stations)
-    println("subdivisions = ",subdivisions)
+    townsites = getSubdivisions("townsites.dat",stations)
+    println("townsites = ",townsites)
 end
 
 function lucas()

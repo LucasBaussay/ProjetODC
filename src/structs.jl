@@ -23,4 +23,4 @@ struct Subdivision
     nearStations::Array{Station,1}
 end
 
-Base.show(io::IO, x::Subdivision) = println(io, x.name)
+Base.show(io::IO, x::Subdivision) = print(io, x.name)

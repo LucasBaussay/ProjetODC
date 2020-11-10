@@ -5,10 +5,11 @@ main.jl est le fichier principal.
 
 println("Precompiling packages...")
 
-using JuMP, GLPK
+using JuMP
 
 include("structs.jl")
 include("dataManager.jl")
+include("JuMPModels.jl")
 
 const COSTOPENSTATION = 1900000
 const COSTBRIDGE = 28600000

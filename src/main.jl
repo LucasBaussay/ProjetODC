@@ -18,7 +18,7 @@ function jules()
     stations = getStations("stations.dat")
     println(stations)
     subdivisions = getSubdivisions("subdivisions.dat",stations)
-    println(subdivisions)
+    println("subdivisions = ",subdivisions)
 end
 
 function lucas()

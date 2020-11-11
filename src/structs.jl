@@ -24,3 +24,5 @@ struct Townsite
 end
 
 Base.show(io::IO, x::Townsite) = print(io, x.name)
+
+getDensity(townsite::Townsite) = townsite.density

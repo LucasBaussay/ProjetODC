@@ -6,7 +6,7 @@ main.jl est le fichier principal.
 println("Precompiling packages...")
 
 
-using JuMP, GLPK
+using JuMP, GLPK, LinearAlgebra, PyPlot
 
 include("structs.jl")
 include("dataManager.jl")
@@ -41,5 +41,8 @@ function jules()
 end
 
 function lucas()
+    stations = getStations("stations.dat")
+    townsites = getTownsites("townsites.dat", stations)
 
+    return stations, townsites
 end

@@ -49,6 +49,16 @@ function getStation(stationName::String,stations::Array{Station,1})
     return stations[indexStation-1]
 end
 
+# retourne le vecteur des densités des lotissements
+function getDensities(townsites::Array{Townsite,1})
+    n = length(townsites)
+    densities = Vector{Int}(undef,n)
+    for indexTownsite in 1:n
+        densities[indexTownsite] = townsites[indexTownsite].density
+    end
+    return densities
+end
+
 # retourne le fichier ouvert correspondant au nom donné
 function openFile(fileName::String)
     actual_path = pwd()

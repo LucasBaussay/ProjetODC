@@ -30,8 +30,14 @@ const STOPTIMESTATION = 3
 function jules()
     stations = getStations("stations.dat")
     println(stations)
-    townsites = getSubdivisions("townsites.dat",stations)
+    townsites = getTownsites("townsites.dat",stations)
     println("townsites = ",townsites)
+
+    h = getDensities(townsites)
+    println("h = ",h)
+    m,x,z = MCP_model(stations,townsites,10,h)
+    println("z = ",z)
+    println("x = ",x)
 end
 
 function lucas()

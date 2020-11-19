@@ -35,7 +35,7 @@ function jules()
 
     h = getDensities(townsites)
     println("h = ",h)
-    m,x,z = MCP_model(stations,townsites,10,h)
+    x,z = MCP_model_Lucas(stations,townsites,10,true)
     println("z = ",z)
     println("x = ",x)
 end

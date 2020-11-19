@@ -26,3 +26,10 @@ end
 Base.show(io::IO, x::Townsite) = print(io, x.name)
 
 getDensity(townsite::Townsite) = townsite.density
+
+# objet Node modélisant un état du graphe Graphe
+struct Node
+    name::String
+    shuttle::Int
+    station::Station
+end

@@ -39,6 +39,14 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
     return activateStation[1:indFinActivateStation], JuMP.objective_value(m)
 end
 
+# retourne un objet à passer au modèle JuMP PESP
+function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Station,1})
+    L = Array{Int,3}(undef,nbStations,nbStations,nbShuttles) # borne inférieure pour chaque triplet station i station j navette w.
+    U = Array{Int,3}(undef,nbStations,nbStations,nbShuttles) # borne supérieure pour chaque triplet station i station j navette w.
+    E = Array{Node,1}(undef,nbStations*nbShuttles*2)
+    A = Array{Tuple{Int,Int},1}(undef,nbStations*nbStations*2)
+end
+
 function stationActivateGraph(listStations::Vector{Station}, listTownsites::Vector{Townsite})
     listP = collect(1:length(listStations))
     valuesP = Vector{Float64}(undef, length(listStations))

@@ -33,3 +33,10 @@ struct Node
     shuttle::Int
     station::Station
 end
+
+struct Graph
+    name::String
+    nbNodes::Int
+    nbArcs::Int
+    
+end

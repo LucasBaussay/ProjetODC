@@ -11,6 +11,7 @@ using JuMP, GLPK, LinearAlgebra, PyPlot
 include("structs.jl")
 include("dataManager.jl")
 include("JuMPModels.jl")
+include("tools.jl")
 
 const COSTOPENSTATION = 1900000
 const COSTBRIDGE = 28600000

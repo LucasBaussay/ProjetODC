@@ -3,7 +3,7 @@
 JuMPModels.jl gère les modèles JuMP et leur résolution
 """
 
-function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, verbose::Bool = true)
+function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int; verbose::Bool = true)
     m = Model(GLPK.Optimizer)
     nbStations = length(stations)
     nbTownsites = length(townsites)
@@ -12,7 +12,7 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
     @variable(m, x[stations], Bin) # xi = 1 si la station i est construite, 0 sinon
     @variable(m, s[townsites], Bin) # si = 1 si la demande du lotissement i est satisfaite, 0 sinon
 
-    @constraint(m, activation[townsite in townsites], sum(x[station] - s[townsite] for station in townsite.nearStations) >= 0)
+    @constraint(m, activation[townsite in townsites], sum(x[station]  for station in townsite.nearStations) - s[townsite] >= 0)
     @constraint(m, limit, sum(x[station] for station in stations) == p)
 
     @objective(m, Max, dot(h,s))
@@ -40,7 +40,7 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
 end
 
 # PESP JuMP Model
-function PESP_model(T::Int,E::Array{Int,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
+#=function PESP_model(T::Int,E::Array{Int,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
     arraysOfTuples = [A_run,A_dwell,A_head,A_thr,A_reg]
     A = merge(arraysOfTuples) # fusionne les arrêtes
 
@@ -96,10 +96,7 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     U = Array{Int,2}(undef,nbNodes,nbNodes)
     
     # Calcul des sommets du graph
-    for indexNode in 1:nbNodes/nbShuttles
-        E[indexNode] = Node(getNameNode(indexNode),)
-    end
-end
+end=#
 
 function stationActivateGraph(listStations::Vector{Station}, listTownsites::Vector{Townsite})
     listP = collect(1:length(listStations))

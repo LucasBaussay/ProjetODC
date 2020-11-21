@@ -40,8 +40,14 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
 end
 
 # PESP JuMP Model
+<<<<<<< HEAD
 function PESP_model(T::Int,E::Array{Nodes,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
     A = merge([A_run,A_dwell,A_head,A_thr,A_reg]) # fusionne les arrêtes
+=======
+function PESP_model(T::Int,E::Array{Int,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
+    arraysOfTuples = [A_run,A_dwell,A_head,A_thr,A_reg]
+    A = merge(arraysOfTuples) # fusionne les arrêtes
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
 
     nbNodes = length(E) # nombre de sommets
     nbArcs = length(A) # nombre d'arcs
@@ -50,19 +56,28 @@ function PESP_model(T::Int,E::Array{Nodes,1},A_run::Array{Tuple{Int,Int},1},A_dw
     m = Model(GLPK.Optimizer)
 
     # déclaration des variables
+<<<<<<< HEAD
     @variable(m, 0 <= x[1:nbNodes] <= T) # temps d'arrivée à chaque sommet du graph
     @variable(m, z[1:nbNodes,1:nbNodes], Bin) # modulo
+=======
+    @variable(m, 0 <= x[nbNodes] <= T) # temps d'arrivée à chaque sommet du graph
+    @variable(m, z[nbNodes,nbNodes], Bin) # modulo
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
 
     # déclaration des contraintes
     @constraint(m, valid[arc in A], L[arc[1],arc[2]] <= x[arc[2]] - x[arc[1]] + z[arc[1],arc[2]]*T <= U[arc[1],arc[2]])
 
     # déclaration de l'objectif
+<<<<<<< HEAD
     @objective(m, Min, sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_dwell) + sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_run))
 
     optimize!(m)
 
     # Ce qu'il faut renvoyer : pour chaque Navette un Tableau pour chaque station (horaireDépart, horaireArrivé)
     return m
+=======
+    @objective(m, Min, )
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
 end
 
 # retourne le tableau de fusion résultante entre les cinq tableaux donnés de Tuple{Int,Int}
@@ -85,6 +100,7 @@ function merge(T::Array{Array{Tuple{Int,Int},1}})
     return result
 end
 
+<<<<<<< HEAD
 # retourne un objet à passer au modèle JuMP PESP, avec nbStations > 0
 function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Station,1}, distStations::Array{Int, 2})
     nbNodes = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
@@ -98,10 +114,22 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     A_run = Array{Tuple{Int,Int},1}(undef,nbArcsRun)
     A_dwell = Array{Tuple{Int,Int},1}(undef,nbArcsDwell)
     A_reg = Array{Tuple{Int,Int},1}(undef,nbArcsReg)
+=======
+# retourne un objet à passer au modèle JuMP PESP
+function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Station,1})
+    nbNodes = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
+    nbNodesPerShuttle = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
+    nbArcs = 2*nbShuttles*(nbStation-1)*(nbShuttles+1) # nombre d'arcs
+    # sommets du graph
+    E = Array{Node,1}(undef,nbNodes)
+    # arrêtes du graph
+    A = Array{Tuple{Int,Int},1}(undef,nbArcs)
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
     # borne inférieure pour chaque couple de sommets du graph
     L = Array{Int,2}(undef,nbNodes,nbNodes)
     # borne supérieure pour chaque couple de sommets du graph
     U = Array{Int,2}(undef,nbNodes,nbNodes)
+<<<<<<< HEAD
 
     iterEps = 0
     iterARun = 0
@@ -187,6 +215,13 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     end
 
 
+=======
+    
+    # Calcul des sommets du graph
+    for indexNode in 1:nbNodes/nbShuttles
+        E[indexNode] = Node(getNameNode(indexNode),)
+    end
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
 end
 
 function stationActivateGraph(listStations::Vector{Station}, listTownsites::Vector{Townsite})

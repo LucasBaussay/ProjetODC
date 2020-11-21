@@ -32,13 +32,21 @@ struct Node
     name::String
     shuttle::Int
     station::Station
+<<<<<<< HEAD
     state::State 
     sense::Sense
+=======
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863
 end
 
 struct Graph
     name::String
     nbNodes::Int
     nbArcs::Int
+<<<<<<< HEAD
 
 end
+=======
+    
+end
+>>>>>>> c2e4e524d0f390d1d83bd9a1622edfd2c7092863

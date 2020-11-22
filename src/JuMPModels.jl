@@ -158,30 +158,30 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
             E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations - iterStation, arrival, back)
 
             iterARun += 1
-            A_run[iterARun] = (iterEps - 1, iterEps)
-            L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
-            U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+            A_run[iterARun] = (iterEps, iterEps - 1)
+            L[iterEps, iterEps-1] = Int(floor(0.95*distStations[ E[iterEps].indStation, E[iterEps-1].indStation] / vehicle_speed))
+            U[iterEps, iterEps-1] = Int(ceil(1.05*distStations[ E[iterEps].indStation, E[iterEps-1].indStation] / vehicle_speed))
 
             iterEps += 1
             E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations - iterStation, departure, back)
 
             iterADwell += 1
-            A_dwell[iterADwell] = (iterEps - 1, iterEps)
-            L[iterEps-1, iterEps] = dwellMin
-            U[iterEps-1, iterEps] = dwellMax
+            A_dwell[iterADwell] = (iterEps, iterEps - 1)
+            L[iterEps, iterEps-1] = dwellMin
+            U[iterEps, iterEps-1] = dwellMax
         end
         iterEps += 1
         E[iterEps] = Node(getNameNode(iterEps), shuttle, 1, arrival, back)
 
         iterARun += 1
-        A_run[iterARun] = (iterEps -1, iterEps)
-        L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
-        U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+        A_run[iterARun] = (iterEps, iterEps-1)
+        L[iterEps, iterEps-1] = Int(floor(0.95*distStations[ E[iterEps].indStation, E[iterEps-1].indStation] / vehicle_speed))
+        U[iterEps, iterEps-1] = Int(ceil(1.05*distStations[ E[iterEps].indStation, E[iterEps-1].indStation] / vehicle_speed))
 
         iterADwell += 1
-        A_dwell[iterADwell] = (iterEps, iterEps - 4*(nbStations - 1) +1)
-        L[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMin + 10
-        U[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMax + 10
+        A_dwell[iterADwell] = ( iterEps - 4*(nbStations - 1) +1, iterEps)
+        L[ (iterEps - 4*(nbStations - 1) +1) , iterEps] = dwellMin + 10
+        U[( iterEps - 4*(nbStations - 1) +1) , iterEps] = dwellMax + 10
     end
 
     for node = 1:(2*(nbStations-1))

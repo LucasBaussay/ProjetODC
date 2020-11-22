@@ -37,7 +37,8 @@ function main()
         println("z = ",z)
         Z[p] = z
     end
-    plot(Z)
+    plot(Z,marker=".",label="Nombre d'habitants qui ont au moins une station accessible")
+    legend()
 end
 
 function jules()

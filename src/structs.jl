@@ -40,5 +40,4 @@ struct Graph
     name::String
     nbNodes::Int
     nbArcs::Int
-
 end

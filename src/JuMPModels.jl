@@ -41,7 +41,7 @@ end
 
 # PESP JuMP Model
 function PESP_model(T::Int,E::Array{Node,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
-    A = merge([A_run,A_dwell,A_head,A_thr,A_reg]) # fusionne les arrêtes
+    A = merge([A_run,A_dwell,A_head,A_thr,A_reg]) # regroupe toutes les arrêtes dans un seul vecteur de tuples
 
     nbNodes = length(E) # nombre de sommets
     nbArcs = length(A) # nombre d'arcs
@@ -201,7 +201,6 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     end
 
     return T, E, A_run, A_dwell, Vector{Tuple{Int, Int}}(), Vector{Tuple{Int, Int}}(), A_reg, L, U
-
 end
 
 function stationActivateGraph(listStations::Vector{Station}, listTownsites::Vector{Townsite})

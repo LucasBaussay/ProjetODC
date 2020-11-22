@@ -51,7 +51,7 @@ end
 function testDidactic()
     T = 1 * 60 * 60
     nbStations = 3
-    nbShuttles = 2
+    nbShuttles = 1
 
     stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
     distStations = Array{Float64, 2}(undef, nbStations, nbStations)
@@ -64,14 +64,32 @@ function testDidactic()
     T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
     m = PESP_model(T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U)
 
+    zValues = JuMP.value.(JuMP.all_variables(m)[length(E):end])
+    nbNodes = length(E)
+
     Y = Vector{Int}(undef, Int(length(E)/nbShuttles))
     X = Vector{Int}(undef, Int(length(E)/nbShuttles))
-    for iter = 1:length(X)
-        Y[iter] = E[iter].indStation
-    end
-    X = JuMP.value.(JuMP.all_variables(m)[1:Int(length(E)/nbShuttles)])
+    for shuttle = 1:nbShuttles
 
-    plot(X, Y, "b")
+        values = JuMP.value.(JuMP.all_variables(m)[1 + (shuttle - 1)*(4 * (nbStations - 1)):(Int(length(E)/nbShuttles) + (shuttle - 1)*(4 * (nbStations - 1)))])
+
+        for iter = 1:length(X)
+            Y[iter] = E[iter].indStation
+
+            if iter % (4*(nbStations-1)) != 1
+                if zValues[(iter-1)*(nbNodes+1)] == 1.
+                    println(iter)
+                end
+                X[iter] = values[iter] + zValues[iter-1 + (iter-1) * nbNodes] * T
+            else
+                X[iter] = values[iter]
+            end
+
+        end
+        # X = JuMP.value.(JuMP.all_variables(m)[1 + (shuttle - 1)*(4 * (nbStations - 1)):(Int(length(E)/nbShuttles) + (shuttle - 1)*(4 * (nbStations - 1)))])
+
+        plot(X, Y)
+    end
 
     return m
 end

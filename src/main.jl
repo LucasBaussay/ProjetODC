@@ -95,4 +95,13 @@ La fonction objectif
 Le numéro d'indicage des contraintes est le numéro du sommet associé, l'ordre de construction est montré (si c'est lisible) sur le graphique que je t'ai envoyé sur Messenger.
 
 Cordialement
+
+Le problème vient des terminus sur le retour : En effet, quand on verifie les temps π_j - π_i, pour le terminus du retour on vient à faire :
+
+π_{premier de la navette} - π_{dernier de la navette} :
+
+Dans les faits on calcul : 40 <= 0 - 820 + z * 3600 <= 70
+
+Tu peux prendre z = 1 ou 0 ca ne satisfait pas la contrainte donc le problème est infaisable ! Je crois qu'on a mal compris une partie du sujet
+Donc si tu trouves l'erreur je t'appel maitre ! (Car l'erreur ne vient pas du code parce qu'il fait exactement tout ce que je veux mais plutôt de la comprehension du problème.)
 """

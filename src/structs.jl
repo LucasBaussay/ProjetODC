@@ -31,7 +31,7 @@ getDensity(townsite::Townsite) = townsite.density
 struct Node
     name::String
     shuttle::Int
-    station::Station
+    indStation::Int
     state::State
     sense::Sense
 end

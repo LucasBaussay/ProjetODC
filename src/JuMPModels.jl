@@ -40,7 +40,7 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
 end
 
 # PESP JuMP Model
-function PESP_model(T::Int,E::Array{Nodes,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
+function PESP_model(T::Int,E::Array{Node,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
     A = merge([A_run,A_dwell,A_head,A_thr,A_reg]) # fusionne les arrêtes
 
     nbNodes = length(E) # nombre de sommets
@@ -70,7 +70,7 @@ function merge(T::Array{Array{Tuple{Int,Int},1}})
     # calcul du nombre total de tuples
     nbTuples = 0
     for array in T
-        nbTuples += legnth(array)
+        nbTuples += length(array)
     end
     # allocation du vecteur à retourner
     result = Vector{Tuple{Int,Int}}(undef,nbTuples)
@@ -86,12 +86,17 @@ function merge(T::Array{Array{Tuple{Int,Int},1}})
 end
 
 # retourne un objet à passer au modèle JuMP PESP, avec nbStations > 0
-function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Station,1}, distStations::Array{Int, 2})
+function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Station,1}, distStations::Array{Float64, 2})
+
+    dwellMax = 60 # en seconde
+    dwellMin = 30 # en seconde
+    vehicle_speed = 20 / 3.6 # en metre/seconde
+
     nbNodes = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
     nbNodesPerShuttle = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
-    nbArcsRun = 2*nbShuttles*(nbStation-1) # nombre d'arcs run
-    nbArcsDwell = 2*nbShuttles*(nbStation-1) # nombre d'arcs Dwell
-    nbArcsReg = 2*nbShuttles*(nbStation-1)*nbStations # nombre d'arcs Reg
+    nbArcsRun = 2*nbShuttles*(nbStations-1) # nombre d'arcs run
+    nbArcsDwell = 2*nbShuttles*(nbStations-1) # nombre d'arcs Dwell
+    nbArcsReg = 2*nbShuttles*(nbStations-1)*(nbShuttles-1) # nombre d'arcs Reg
     # sommets du graph
     E = Array{Node,1}(undef,nbNodes)
     # arrêtes du graph
@@ -110,19 +115,19 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     for shuttle = 1:nbShuttles
         # L'aller de la navette
         iterEps += 1
-        E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[1], departure, forth)
+        E[iterEps] = Node(getNameNode(iterEps), shuttle, 1, departure, forth)
         for iterStation = 2:nbStations-1
             iterEps += 1
-            E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[iterStation], arrival, forth)
+            E[iterEps] = Node(getNameNode(iterEps), shuttle, iterStation, arrival, forth)
 
             # Trajet entre une station et une autre
             iterARun += 1
             A_run[iterARun] = (iterEps-1, iterEps)
-            L[iterEps-1, iterEps] = Int(floor(0.95*distStations[iterEps-1, iterEps]))
-            U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[iterEps-1, iterEps]))
+            L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+            U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
 
             iterEps += 1
-            E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[iterStation], departure, forth)
+            E[iterEps] = Node(getNameNode(iterEps), shuttle, iterStation, departure, forth)
 
             # Attente sur une station du trajet
             iterADwell += 1
@@ -131,17 +136,17 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
             U[iterEps-1, iterEps] = dwellMax
         end
         iterEps += 1
-        E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[end], arrival, forth)
+        E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations, arrival, forth)
 
 
         iterARun += 1
         A_run[iterARun] = (iterEps - 1, iterEps)
-        L[iterEps-1, iterEps] = Int(floor(0.95*distStations[iterEps-1, iterEps]))
-        U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[iterEps-1, iterEps]))
+        L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+        U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
 
         # Le retour de la navette
         iterEps += 1
-        E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[end], departure, back)
+        E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations, departure, back)
 
         iterADwell += 1
         A_dwell[iterADwell] = (iterEps - 1, iterEps)
@@ -150,15 +155,15 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
 
         for iterStation = 1:nbStations-2
             iterEps += 1
-            E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[end - iterStation], arrival, back)
+            E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations - iterStation, arrival, back)
 
             iterARun += 1
             A_run[iterARun] = (iterEps - 1, iterEps)
-            L[iterEps-1, iterEps] = Int(floor(0.95*distStations[iterEps-1, iterEps]))
-            U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[iterEps-1, iterEps]))
+            L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+            U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
 
             iterEps += 1
-            E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[end - iterStation], departure, back)
+            E[iterEps] = Node(getNameNode(iterEps), shuttle, nbStations - iterStation, departure, back)
 
             iterADwell += 1
             A_dwell[iterADwell] = (iterEps - 1, iterEps)
@@ -166,26 +171,36 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
             U[iterEps-1, iterEps] = dwellMax
         end
         iterEps += 1
-        E[iterEps] = Node(getNameNode(iterEps), shuttle, stations[1], arrival, back)
+        E[iterEps] = Node(getNameNode(iterEps), shuttle, 1, arrival, back)
 
         iterARun += 1
         A_run[iterARun] = (iterEps -1, iterEps)
-        L[iterEps-1, iterEps] = Int(floor(0.95*distStations[iterEps-1, iterEps]))
-        U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[iterEps-1, iterEps]))
+        L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
+        U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
 
         iterADwell += 1
-        A_dwell[iterADwell] = (iterEps, iterEps - 4*(nbStations - 1) -1)
+        A_dwell[iterADwell] = (iterEps, iterEps - 4*(nbStations - 1) +1)
+        L[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMin + 10
+        U[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMax + 10
     end
 
     for node = 1:(2*(nbStations-1))
         for shuttle = 1:nbShuttles
             for nextShuttle = (shuttle+1):nbShuttles
                 iterAReg += 1
-                A_reg[iterAReg] = (node + shuttle*(4*(nbStations - 1)) , node + nextShuttle*(4*(nbStations - 1)) )
+                A_reg[iterAReg] = (node + (shuttle - 1)*(4*(nbStations - 1)) , node + (nextShuttle - 1)*(4*(nbStations - 1)) )
+                L[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(floor(T/nbStations))
+                U[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = typemax(Int)
+
+                iterAReg += 1
+                A_reg[iterAReg] = (node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)) , node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)) )
+                L[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(floor(T/nbStations))
+                U[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = typemax(Int)
             end
         end
     end
 
+    return T, E, A_run, A_dwell, Vector{Tuple{Int, Int}}(), Vector{Tuple{Int, Int}}(), A_reg, L, U
 
 end
 

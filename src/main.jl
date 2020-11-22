@@ -27,6 +27,18 @@ const SPEED_VEHICLE = 20
 
 const STOP_TIME_STATION = 3
 
+function main()
+    stations = getStations("stations.dat")
+    townsites = getTownsites("townsites.dat",stations)
+    h = getDensities(townsites)
+    Z = Vector{Int}(undef,length(stations))
+    for p in 1:length(stations)
+        x,z = MCP_model_Lucas(stations,townsites,p,false)
+        println("z = ",z)
+        Z[p] = z
+    end
+    plot(Z)
+end
 
 function jules()
     stations = getStations("stations.dat")

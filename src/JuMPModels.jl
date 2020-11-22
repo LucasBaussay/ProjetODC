@@ -12,7 +12,7 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
     @variable(m, x[stations], Bin) # xi = 1 si la station i est construite, 0 sinon
     @variable(m, s[townsites], Bin) # si = 1 si la demande du lotissement i est satisfaite, 0 sinon
 
-    @constraint(m, activation[townsite in townsites], sum(x[station] - s[townsite] for station in townsite.nearStations) >= 0)
+    @constraint(m, activation[townsite in townsites], sum(x[station] for station in townsite.nearStations) - s[townsite] >= 0)
     @constraint(m, limit, sum(x[station] for station in stations) == p)
 
     @objective(m, Max, dot(h,s))

@@ -51,7 +51,7 @@ end
 function testDidactic()
     T = 1 * 60 * 60
     nbStations = 3
-    nbShuttles = 1
+    nbShuttles = 2
 
     stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
     distStations = Array{Float64, 2}(undef, nbStations, nbStations)
@@ -64,44 +64,53 @@ function testDidactic()
     T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
     m = PESP_model(T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U)
 
+    Y = Vector{Int}(undef, Int(length(E)/nbShuttles))
+    X = Vector{Int}(undef, Int(length(E)/nbShuttles))
+    for iter = 1:length(X)
+        Y[iter] = E[iter].indStation
+    end
+    X = JuMP.value.(JuMP.all_variables(m)[1:Int(length(E)/nbShuttles)])
+
+    plot(X, Y, "b")
+
     return m
 end
-
-"""
-Pour Jules :
-
-La fonction PESP_model te renvoie le modèle JuMP oprimisé.
-
-Fonctions utiles dessus :
-
-Récuperer le modèle :
-
-m = testDidactic()
-
-Les contraintes liées aux variables
-
-- JuMP.all_constraints(m, JuMP.VariableRef, MOI.GreaterThan{Float64})
-- JuMP.all_constraints(m, JuMP.VariableRef, MOI.LessThan{Float64})
-- JuMP.all_constraints(m, JuMP.VariableRef, MOI.ZeroOne)
-
-Les réels contraintes
-
-- JuMP.all_constraints(m, JuMP.GenericAffExpr{Float64, VariableRef}, MOI.Interval{Float64})
-
-La fonction objectif
-
-- JuMP.objective_function(m)
-
-Le numéro d'indicage des contraintes est le numéro du sommet associé, l'ordre de construction est montré (si c'est lisible) sur le graphique que je t'ai envoyé sur Messenger.
-
-Cordialement
-
-Le problème vient des terminus sur le retour : En effet, quand on verifie les temps π_j - π_i, pour le terminus du retour on vient à faire :
-
-π_{premier de la navette} - π_{dernier de la navette} :
-
-Dans les faits on calcul : 40 <= 0 - 820 + z * 3600 <= 70
-
-Tu peux prendre z = 1 ou 0 ca ne satisfait pas la contrainte donc le problème est infaisable ! Je crois qu'on a mal compris une partie du sujet
-Donc si tu trouves l'erreur je t'appel maitre ! (Car l'erreur ne vient pas du code parce qu'il fait exactement tout ce que je veux mais plutôt de la comprehension du problème.)
-"""
+#
+# """
+# Pour Jules :
+#
+# La fonction PESP_model te renvoie le modèle JuMP oprimisé.
+#
+# Fonctions utiles dessus :
+#
+# Récuperer le modèle :
+#
+# m = testDidactic()
+#
+# Les contraintes liées aux variables
+#
+# - JuMP.all_constraints(m, JuMP.VariableRef, MOI.GreaterThan{Float64})
+# - JuMP.all_constraints(m, JuMP.VariableRef, MOI.LessThan{Float64})
+# - JuMP.all_constraints(m, JuMP.VariableRef, MOI.ZeroOne)
+#
+# Les réels contraintes
+#
+# - JuMP.all_constraints(m, JuMP.GenericAffExpr{Float64, VariableRef}, MOI.Interval{Float64})
+#
+# La fonction objectif
+#
+# - JuMP.objective_function(m)
+#
+# Le numéro d'indicage des contraintes est le numéro du sommet associé, l'ordre de construction est montré (si c'est lisible) sur le graphique que je t'ai envoyé sur Messenger.
+#
+# Cordialement
+#
+# Le problème vient des terminus sur le retour : En effet, quand on verifie les temps π_j - π_i, pour le terminus du retour on vient à faire :
+#
+# π_{premier de la navette} - π_{dernier de la navette} :
+#
+# Dans les faits on calcul : 40 <= 0 - 820 + z * 3600 <= 70
+#
+# Tu peux prendre z = 1 ou 0 ca ne satisfait pas la contrainte donc le problème est infaisable ! Je crois qu'on a mal compris une partie du sujet
+# Donc si tu trouves l'erreur je t'appel maitre ! (Car l'erreur ne vient pas du code parce qu'il fait exactement tout ce que je veux mais plutôt de la comprehension du problème.)
+# """

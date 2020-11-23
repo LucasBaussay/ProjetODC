@@ -40,7 +40,7 @@ function MCP_model_Lucas(stations::Array{Station,1},townsites::Array,p::Int, ver
 end
 
 # PESP JuMP Model
-function PESP_model(T::Int,E::Array{Node,1},A_run::Array{Tuple{Int,Int},1},A_dwell::Array{Tuple{Int,Int},1},A_thr::Array{Tuple{Int,Int},1},A_head::Array{Tuple{Int,Int},1},A_reg::Array{Tuple{Int,Int},1},L::Array{Int,2},U::Array{Int,2})
+function PESP_model(T::Int, E::Array{Node,1}, A_run::Array{Tuple{Int,Int},1}, A_dwell::Array{Tuple{Int,Int},1}, A_term::Array{Tuple{Int,Int},1}, A_thr::Array{Tuple{Int,Int},1}, A_head::Array{Tuple{Int,Int},1}, A_reg::Array{Tuple{Int,Int},1}, L::Array{Int,2}, U::Array{Int,2})
     A = merge([A_run,A_dwell,A_head,A_thr,A_reg]) # regroupe toutes les arrêtes dans un seul vecteur de tuples
 
     nbNodes = length(E) # nombre de sommets
@@ -51,13 +51,13 @@ function PESP_model(T::Int,E::Array{Node,1},A_run::Array{Tuple{Int,Int},1},A_dwe
 
     # déclaration des variables
     @variable(m, 0 <= x[1:nbNodes] <= T) # temps d'arrivée à chaque sommet du graph
-    @variable(m, z[1:nbNodes,1:nbNodes], Bin) # modulo
+    @variable(m, z[1:nbNodes,1:nbNodes] >= 0, Bin) # modulo
 
     # déclaration des contraintes
     @constraint(m, valid[arc in A], L[arc[1],arc[2]] <= x[arc[2]] - x[arc[1]] + z[arc[1],arc[2]]*T <= U[arc[1],arc[2]])
 
     # déclaration de l'objectif
-    @objective(m, Min, sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_dwell) + sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_run))
+    @objective(m, Min, sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_dwell) + sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_run) + sum(x[arc[2]] - x[arc[1]] +z[arc[1], arc[2]] * T for arc in A_term))
 
     optimize!(m)
 
@@ -96,12 +96,14 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     nbNodesPerShuttle = 4*(nbStations-1)*nbShuttles # nombre de sommets du graph
     nbArcsRun = 2*nbShuttles*(nbStations-1) # nombre d'arcs run
     nbArcsDwell = 2*nbShuttles*(nbStations-1) - nbShuttles # nombre d'arcs Dwell
+    nbArcsTerm = nbShuttles # Nombre d'arcs de fins de retour
     nbArcsReg = 2*nbShuttles*(nbStations-1)*(nbShuttles-1) # nombre d'arcs Reg
     # sommets du graph
     E = Array{Node,1}(undef,nbNodes)
     # arrêtes du graph
     A_run = Array{Tuple{Int,Int},1}(undef,nbArcsRun)
     A_dwell = Array{Tuple{Int,Int},1}(undef,nbArcsDwell)
+    A_term = Array{Tuple{Int ,Int}}(undef, nbArcsTerm)
     A_reg = Array{Tuple{Int,Int},1}(undef,nbArcsReg)
     # borne inférieure pour chaque couple de sommets du graph
     L = Array{Int,2}(undef,nbNodes,nbNodes)
@@ -111,6 +113,7 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
     iterEps = 0
     iterARun = 0
     iterADwell = 0
+    iterATerm = 0
     iterAReg = 0
     for shuttle = 1:nbShuttles
         # L'aller de la navette
@@ -178,8 +181,8 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
         L[iterEps-1, iterEps] = Int(floor(0.95*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
         U[iterEps-1, iterEps] = Int(ceil(1.05*distStations[ E[iterEps-1].indStation, E[iterEps].indStation] / vehicle_speed))
 
-        # iterADwell += 1
-        # A_dwell[iterADwell] = (iterEps, iterEps - 4*(nbStations - 1) +1)
+        iterATerm += 1
+        A_term[iterATerm] = (iterEps, iterEps - 4*(nbStations - 1) +1)
         # L[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMin + 10
         # U[iterEps , (iterEps - 4*(nbStations - 1) +1)] = dwellMax + 10
     end
@@ -189,18 +192,18 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
             for nextShuttle = (shuttle+1):nbShuttles
                 iterAReg += 1
                 A_reg[iterAReg] = (node + (shuttle - 1)*(4*(nbStations - 1)) , node + (nextShuttle - 1)*(4*(nbStations - 1)) )
-                L[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(floor(T/nbStations))
-                U[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = typemax(Int)
+                L[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(ceil(T/nbStations))
+                U[node + (shuttle - 1)*(4*(nbStations - 1)), (node + (nextShuttle - 1)*(4*(nbStations - 1)))] = T - Int(ceil(T/nbStations))
 
                 iterAReg += 1
                 A_reg[iterAReg] = (node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)) , node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)) )
-                L[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(floor(T/nbStations))
-                U[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = typemax(Int)
+                L[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(ceil(T/nbStations))
+                U[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = T - Int(ceil(T/nbStations))
             end
         end
     end
 
-    return T, E, A_run, A_dwell, Vector{Tuple{Int, Int}}(), Vector{Tuple{Int, Int}}(), A_reg, L, U
+    return T, E, A_run, A_dwell, A_term, Vector{Tuple{Int, Int}}(), Vector{Tuple{Int, Int}}(), A_reg, L, U
 end
 
 function stationActivateGraph(listStations::Vector{Station}, listTownsites::Vector{Townsite})

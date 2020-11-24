@@ -71,12 +71,30 @@ function distDidact()
     return distStations
 end
 
-function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
+function formul(lat1::Float64, long1::Float64, lat2::Float64, long2::Float64)
+    r = 6378137
+    distAng = acos( sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(long1 - long2) )
 
-    nbStations = 3
-    stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
+    return r * distAng
+end
 
-    distStations = distDidact()
+function calculDistLatLong(stations::Vector{Station})
+
+    nbStations = length(stations)
+    distStations = Array{Float64, 2}(undef, nbStations, nbStations)
+
+    for i = 1:nbStations
+        for j = i+1:nbStations
+            distStations[i, j] = formul(stations[i].latitude, stations[i].longitude, stations[j].latitude, stations[j].longitude)
+        end
+    end
+
+    return distStations
+end
+
+function runPESP(;stations::Vector{Station}, distStations::Array{Float64, 2} = calculDistLatLong(stations), T::Int = 3600, nbShuttles::Int = 2)
+
+    nbStations = length(stations)
 
     T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
     m = PESP_model(T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U)
@@ -121,6 +139,18 @@ function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
         return m
     end
 end
+
+function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
+
+    nbStations = 3
+    stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
+
+    distStations = distDidact()
+
+    return runPESP(stations, distStations, T = T, nbShuttles = nbShuttles)
+
+end
+
 #
 # """
 # Pour Jules :

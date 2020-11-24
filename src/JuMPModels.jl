@@ -197,8 +197,8 @@ function parserPESP(T::Int,nbStations::Int,nbShuttles::Int,stations::Array{Stati
 
                 iterAReg += 1
                 A_reg[iterAReg] = (node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)) , node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)) )
-                L[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(ceil(T/nbStations))
-                U[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = T - Int(ceil(T/nbStations))
+                L[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = Int(ceil(T/nbShuttles))
+                U[node + (2*(nbStations-1)) + (shuttle - 1)*(4*(nbStations - 1)), (node + 2*(nbStations-1) + (nextShuttle - 1)*(4*(nbStations - 1)))] = T - Int(ceil(T/nbShuttles))
             end
         end
     end

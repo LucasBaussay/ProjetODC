@@ -13,7 +13,7 @@ function getStations(fileName::String)
     for indexStation in 1:nbStations
         line = readline(f)
         splitLine = split(line," ")
-        stations[indexStation] = Station(splitLine[1],parse(Float64,splitLine[2]),parse(Float64,splitLine[3])) # construction de la station
+        stations[indexStation] = Station(splitLine[1],parse(Float64,splitLine[3]),parse(Float64,splitLine[2])) # construction de la station
     end
     return stations
 end
@@ -31,7 +31,7 @@ function getTownsites(fileName::String,stations::Array{Station,1})
         for indexStation in 1:nbNearStations
             nearStations[indexStation] = getStation(string(splitLine[4+indexStation]),stations) # on les stock dans un vecteur
         end
-        townsites[indexTownsite] = Townsite(splitLine[1],parse(Float64,splitLine[2]),parse(Float64,splitLine[3]),parse(Int,splitLine[4]),nearStations)
+        townsites[indexTownsite] = Townsite(splitLine[1],parse(Float64,splitLine[3]),parse(Float64,splitLine[2]),parse(Int,splitLine[4]),nearStations)
     end
     return townsites
 end

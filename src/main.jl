@@ -61,18 +61,22 @@ function lucas()
     return stations, townsites
 end
 
-function testDidactic()
-    T = 1 * 3600
-    nbStations = 3
-    nbShuttles = 2
-
-    stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
+function distDidact()
     distStations = Array{Float64, 2}(undef, nbStations, nbStations)
 
     distStations[1,2] = 750
     distStations[2,3] = 1000
     distStations[2,1] = 750
     distStations[3,2] = 1000
+    return distStations
+end
+
+function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
+
+    nbStations = 3
+    stations = [Station("Station "*string(i), rand(), rand()) for i = 1:nbStations]
+
+    distStations = distDidact()
 
     T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
     m = PESP_model(T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U)

@@ -62,7 +62,7 @@ function lucas()
 end
 
 function distDidact()
-    distStations = Array{Float64, 2}(undef, nbStations, nbStations)
+    distStations = Array{Float64, 2}(undef, 3, 3)
 
     distStations[1,2] = 750
     distStations[2,3] = 1000

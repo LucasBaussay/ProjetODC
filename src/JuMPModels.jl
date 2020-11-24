@@ -51,7 +51,7 @@ function PESP_model(T::Int, E::Array{Node,1}, A_run::Array{Tuple{Int,Int},1}, A_
 
     # déclaration des variables
     @variable(m, 0 <= x[1:nbNodes] <= T) # temps d'arrivée à chaque sommet du graph
-    @variable(m, z[1:nbNodes,1:nbNodes] >= 0, Bin) # modulo
+    @variable(m, z[1:nbNodes,1:nbNodes], Bin) # modulo
 
     # déclaration des contraintes
     @constraint(m, valid[arc in A], L[arc[1],arc[2]] <= x[arc[2]] - x[arc[1]] + z[arc[1],arc[2]]*T <= U[arc[1],arc[2]])

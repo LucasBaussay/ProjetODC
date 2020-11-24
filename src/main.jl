@@ -62,7 +62,7 @@ function lucas()
 end
 
 function testDidactic()
-    T = 1 * 60 * 60
+    T = 1 * 3600
     nbStations = 3
     nbShuttles = 2
 
@@ -77,85 +77,45 @@ function testDidactic()
     T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
     m = PESP_model(T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U)
 
-    if JuMP.termination_status(m) == OPTIMAL
+    if JuMP.termination_status(m) != MOI.OPTIMAL
+        println("La periode est trop courte pour ce nombre de Navette, veuillez diminuer le nombre de Navette ou bien augmenter la periode.")
+        return m
+    else
+        nbNodes = length(E)
+        nbNodesPerShuttle = Int(nbNodes/nbShuttles)
 
-    nbNodes = length(E)
-    nbNodesPerShuttle = Int(nbNodes/nbShuttles)
+        zValues = JuMP.value.(JuMP.all_variables(m)[(nbNodes+1):end]) #Acces a z[i, j] : zValues[i + (j-1)*nbNodes] et Acces z[i-1, i] = zValues[ (i - 1) * (nbNodes + 1)]
 
-    zValues = JuMP.value.(JuMP.all_variables(m)[(nbNodes+1):end]) #Acces a z[i, j] : zValues[i + (j-1)*nbNodes] et Acces z[i-1, i] = zValues[ (i - 1) * (nbNodes + 1)]
+        iterNode = 0
 
-    for shuttle = 1:nbShuttles
+        for shuttle = 1:nbShuttles
 
-        values = JuMP.value.(JuMP.all_variables(m)[1 + (shuttle - 1)*(4 * (nbStations - 1)):(Int(length(E)/nbShuttles) + (shuttle - 1)*(4 * (nbStations - 1)))])
+            values = JuMP.value.(JuMP.all_variables(m)[1 + (shuttle - 1)*(4 * (nbStations - 1)):(Int(length(E)/nbShuttles) + (shuttle - 1)*(4 * (nbStations - 1)))])
 
-        iter = 0
-        Y = Vector{Int}(undef, Int(length(E)/nbShuttles)) # Idée : Juste les vider genre empty!(X)
-        X = Vector{Int}(undef, Int(length(E)/nbShuttles))
+            Y = Vector{Int}(undef, Int(length(E)/nbShuttles)) # Idée : Juste les vider genre empty!(X)
+            X = Vector{Int}(undef, Int(length(E)/nbShuttles))
 
-        for iterNode = (1 + nbNodesPerShuttle * (shuttle -1)):(nbNodesPerShuttle * (shuttle))
-            iter += 1
-            Y[iter] = E[iterNode].indStation
+            nbAjoutT = 0
 
-            if iter != 1
-                X[iter] = values[iter] + zValues[(iterNode-1)*(nbNodes+1)] * T
-            else
-                X[iter] = values[iter]
+            for iter = 1:nbNodesPerShuttle
+                iterNode += 1
+                Y[iter] = E[iterNode].indStation
+
+                if iter != 1
+                    if zValues[(iterNode-1)*(nbNodes+1)] == 1
+                        nbAjoutT += 1
+                    end
+                    X[iter] = (values[iter] + nbAjoutT * T)
+                else
+                    X[iter] = values[iter]
+                end
+
             end
 
+            plot(X, Y)
         end
-
-        plot(X, Y)
+        return m
     end
-
-    # if nbShuttles == 1
-    #
-    #     values = JuMP.value.(JuMP.all_variables(m)[1:nbNodes])
-    #     Y = Vector{Int}(undef, Int(length(E)/nbShuttles))
-    #     X = Vector{Int}(undef, Int(length(E)/nbShuttles))
-    #
-    #     for iter = 1:nbNodes
-    #         X[iter] = values[iter]
-    #         Y[iter] = E[iter].indStation
-    #     end
-    #     plot(X, Y)
-    #
-    # elseif nbShuttles == 2
-    #
-    #     nbNodesPerShuttle = Int(nbNodes/2)
-    #
-    #     values1 = JuMP.value.(JuMP.all_variables(m)[1:nbNodesPerShuttle])
-    #     values2 = JuMP.value.(JuMP.all_variables(m)[nbNodesPerShuttle+1:nbNodes])
-    #
-    #     zValues = JuMP.value.(JuMP.all_variables(m)[(nbNodes+1):end]) #Acces a z[i, j] : zValues[i + (j-1)*nbNodes]
-    #
-    #     Y1 = Vector{Int}(undef, nbNodesPerShuttle)
-    #     X1 = Vector{Int}(undef, nbNodesPerShuttle)
-    #     Y2 = Vector{Int}(undef, nbNodesPerShuttle)
-    #     X2 = Vector{Int}(undef, nbNodesPerShuttle)
-    #
-    #     for iter = 1:nbNodesPerShuttle
-    #
-    #         if iter%nbNodes != 1
-    #
-    #             X1[iter] = values1[iter] + (zValues[(iter-1)*(nbNodes+1)] != 0. ? T : 0)
-    #             Y1[iter] = E[iter].indStation
-    #
-    #             X2[iter] = values2[iter] + (zValues[(iter + nbNodesPerShuttle -1)*(nbNodes + 1)] != 0. ? T : 0)
-    #             Y2[iter] = E[iter].indStation
-    #
-    #         else
-    #             X1[iter] = values1[iter]
-    #             Y1[iter] = E[iter].indStation
-    #             X2[iter] = values2[iter]
-    #             Y2[iter] = E[iter].indStation
-    #         end
-    #
-    #     end
-    #
-    #     plot(X1, Y1)
-    #     plot(X2, Y2)
-    # end
-    return m
 end
 #
 # """

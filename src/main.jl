@@ -72,8 +72,8 @@ function distDidact()
 end
 
 function formul(lat1::Float64, long1::Float64, lat2::Float64, long2::Float64)
-    r = 6378137
-    distAng = acos( sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(long1 - long2) )
+    r = 6371008
+    distAng = acos( sin(lat1 * pi/180) * sin(lat2 * pi/180) + cos(lat1 * pi/180) * cos(lat2 * pi/180) * cos((long1 - long2)*pi/180) )
 
     return r * distAng
 end
@@ -86,6 +86,7 @@ function calculDistLatLong(stations::Vector{Station})
     for i = 1:nbStations
         for j = i+1:nbStations
             distStations[i, j] = formul(stations[i].latitude, stations[i].longitude, stations[j].latitude, stations[j].longitude)
+            distStations[j, i] = distStations[i, j]
         end
     end
 
@@ -96,8 +97,8 @@ function runPESP(;stations::Vector{Station}, distStations::Array{Float64, 2} = c
 
     nbStations = length(stations)
 
-    T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
-    m = PESP_model(T, E, A_run, A_dwell, A_term, A_thr, A_head, A_reg, L, U)
+    T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U = parserPESP(T, nbStations, nbShuttles, stations, distStations)
+    m = PESP_model(T, E, A_run, A_dwell, A_thr, A_head, A_reg, L, U)
 
     if JuMP.termination_status(m) != MOI.OPTIMAL
         println("La periode est trop courte pour ce nombre de Navette, veuillez diminuer le nombre de Navette ou bien augmenter la periode.")
@@ -147,7 +148,7 @@ function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
 
     distStations = distDidact()
 
-    return runPESP(stations, distStations, T = T, nbShuttles = nbShuttles)
+    return runPESP(stations = stations, distStations = distStations, T = T, nbShuttles = nbShuttles)
 
 end
 

@@ -77,7 +77,7 @@ function mainPart1()
         end
         
     end
-    plot(Z, couts, marker=".",label="Nombre d'habitants qui ont au moins une station accessible")
+    plot(Z, couts, marker=".",label="Coût d'installation en fonction du nombre d'habitants qui ont au moins une station accessible")
     grid()
     title("Représentation pour chaque nombre de station ouverte, le cout en fonction de la densité de population touchée")
     xlabel("Densité de population")

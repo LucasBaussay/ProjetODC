@@ -7,6 +7,7 @@ import Base.show
 
 # objet Station modélisant une station de navette
 struct Station
+	ind::Int
     name::String
     latitude::Float64
     longitude::Float64

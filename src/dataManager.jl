@@ -13,7 +13,7 @@ function getStations(fileName::String)
     for indexStation in 1:nbStations
         line = readline(f)
         splitLine = split(line," ")
-        stations[indexStation] = Station(splitLine[1],parse(Float64,splitLine[3]),parse(Float64,splitLine[2])) # construction de la station
+        stations[indexStation] = Station(indexStation, splitLine[1],parse(Float64,splitLine[3]),parse(Float64,splitLine[2])) # construction de la station
     end
     return stations
 end

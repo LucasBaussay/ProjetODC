@@ -27,14 +27,14 @@ const SPEED_VEHICLE = 20
 
 const STOP_TIME_STATION = 3
 
-function main()
+function mainPart1()
     stations = getStations("stations.dat")
     townsites = getTownsites("townsites.dat",stations)
     h = getDensities(townsites)
     Z = Vector{Int}(undef,length(stations))
     for p in 1:length(stations)
         x,z = MCP_model_Lucas(stations,townsites,p,false)
-        println("z = ",z)
+        #println("z = ",z)
         Z[p] = z
     end
     plot(Z,marker=".",label="Nombre d'habitants qui ont au moins une station accessible")
@@ -83,13 +83,22 @@ function calculDistLatLong(stations::Vector{Station})
     nbStations = length(stations)
     distStations = Array{Float64, 2}(undef, nbStations, nbStations)
 
-    for i = 1:nbStations
-        for j = i+1:nbStations
-            distStations[i, j] = formul(stations[i].latitude, stations[i].longitude, stations[j].latitude, stations[j].longitude)
-            distStations[j, i] = distStations[i, j]
-        end
+    for iter = 1:(nbStations-1)
+		dist = formul(stations[iter].latitude, stations[iter].longitude, stations[iter+1].latitude, stations[iter+1].longitude)
+        distStations[iter, iter+1] = dist
+		distStations[iter+1, iter] = dist
     end
 
+	for iterRow = 1:nbStations
+		for iterCol = (iterRow+2):nbStations
+			distStations[iterRow, iterCol] = 0.
+			distStations[iterCol, iterRow] = 0.
+			for iter = 1:(iterCol-iterRow)
+				distStations[iterRow, iterCol] += distStations[iter, iter+1]
+				distStations[iterCol, iterRow] += distStations[iter, iter+1]
+			end
+		end
+	end
     return distStations
 end
 
@@ -104,6 +113,17 @@ function runPESP(;stations::Vector{Station}, distStations::Array{Float64, 2} = c
         println("La periode est trop courte pour ce nombre de Navette, veuillez diminuer le nombre de Navette ou bien augmenter la periode.")
         return m
     else
+	
+		grid()
+		title("Représentation graphique de la planification des horaires pour $nbShuttles navette(s)")
+		xlabel("Temps en secondes")
+		ylabel("Indice de la station actuelle")
+
+		for iterStation in 1:nbStations
+			station = stations[nbStations - iterStation + 1]
+			plot([], [], "k", label = "$(nbStations - iterStation + 1) : $(station.name)")
+		end
+
         nbNodes = length(E)
         nbNodesPerShuttle = Int(nbNodes/nbShuttles)
 
@@ -135,8 +155,9 @@ function runPESP(;stations::Vector{Station}, distStations::Array{Float64, 2} = c
 
             end
 
-            plot(X, Y)
+            plot(X, Y, label = "Navette $shuttle")
         end
+	legend()
         return m
     end
 end
@@ -150,6 +171,29 @@ function testDidactic(;T::Int = 3600, nbShuttles::Int = 2)
 
     return runPESP(stations = stations, distStations = distStations, T = T, nbShuttles = nbShuttles)
 
+end
+
+function nantesCarq(;nbStations::Union{Int, Missing} = missing, nbShuttles::Int = 2, T::Int = 3600)
+	
+	if typeof(nbStations) <: Missing
+		mainPart1()
+		println("Input the number of station you want to take : ")
+		print(">> ")
+		nbStations = parse(Int, readline())
+		PyPlot.close()
+	end
+
+	allStations = getStations("stations.dat")
+    allTownsites = getTownsites("townsites.dat",allStations)
+
+	h = getDensities(allTownsites)
+    x,z = MCP_model_Lucas(allStations,allTownsites,nbStations,false)
+
+	indX = broadcast(stat -> stat.ind, x)
+
+	distStations = calculDistLatLong(allStations)[indX, indX]
+
+	return runPESP(stations = x, distStations = distStations, T = T, nbShuttles = nbShuttles)
 end
 
 #
